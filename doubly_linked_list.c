@@ -69,6 +69,8 @@ int get_value_dll(DoublyLinkedList *list, int index) {
 }
 
 void merge_dll(DoublyLinkedList *first_dll, DoublyLinkedList *second_dll) {
+  first_dll->size += second_dll->size;
+
   if (first_dll->head == NULL) {
     first_dll->head = second_dll->head;
     return;
