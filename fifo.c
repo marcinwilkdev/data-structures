@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,13 +7,15 @@
 
 Fifo new_fifo() {
   unsigned int capacity = 16;
-  int *pointer = malloc(capacity * sizeof(int));
-  int *curr = pointer;
   unsigned int size = 0;
+  int *pointer = malloc(capacity * sizeof(int));
+  int *begin = pointer;
+  int *end = pointer;
 
   Fifo fifo = {
       .pointer = pointer,
-      .curr = curr,
+      .begin = begin,
+      .end = end,
       .size = size,
       .capacity = capacity,
   };
@@ -20,18 +23,20 @@ Fifo new_fifo() {
   return fifo;
 }
 
-void reallocate_fifo(Fifo *fifo) {
-  unsigned int new_capacity = fifo->capacity * 2;
-  int *new_pointer = malloc(new_capacity * sizeof(int));
+void advance_fifo_begin(Fifo *fifo) {
+  fifo->begin++;
 
-  memcpy(new_pointer, fifo->pointer, fifo->size * sizeof(int));
-  free(fifo->pointer);
+  if (fifo->begin >= (fifo->pointer + fifo->capacity)) {
+    fifo->begin = fifo->pointer;
+  }
+}
 
-  long curr_placement = fifo->curr - fifo->pointer;
+void advance_fifo_end(Fifo *fifo) {
+  fifo->end++;
 
-  fifo->pointer = new_pointer;
-  fifo->capacity = new_capacity;
-  fifo->curr = fifo->pointer + curr_placement;
+  if (fifo->end >= (fifo->pointer + fifo->capacity)) {
+    fifo->end = fifo->pointer;
+  }
 }
 
 void push_fifo(Fifo *fifo, int value) {
@@ -39,19 +44,43 @@ void push_fifo(Fifo *fifo, int value) {
     reallocate_fifo(fifo);
   }
 
-  *(fifo->pointer + fifo->size) = value;
+  *fifo->end = value;
   fifo->size++;
+
+  advance_fifo_end(fifo);
 }
 
 int pop_fifo(Fifo *fifo) {
-  if (fifo->curr - fifo->size < fifo->pointer) {
-    int value = *fifo->curr;
-    fifo->curr++;
-    return value;
-  } else {
-    fprintf(stderr, "Trying to pop of empty fifo! Quitting...");
+  if (fifo->size == 0) {
+    fprintf(stderr, "Can't pop of empty lifo. Quitting...");
     exit(-1);
   }
+
+  int value = *fifo->begin;
+
+  advance_fifo_begin(fifo);
+
+  fifo->size--;
+
+  return value;
+}
+
+void reallocate_fifo(Fifo *fifo) {
+  int new_capacity = fifo->capacity * 2;
+
+  int *new_pointer = malloc(new_capacity * sizeof(int));
+
+  for (int i = 0; i < fifo->capacity; i++) {
+    *(new_pointer + i) = pop_fifo(fifo);
+  }
+
+  free(fifo->pointer);
+
+  fifo->pointer = new_pointer;
+  fifo->begin = new_pointer;
+  fifo->end = new_pointer + fifo->capacity;
+  fifo->size = fifo->capacity;
+  fifo->capacity = new_capacity;
 }
 
 void present_fifo() {
@@ -64,7 +93,6 @@ void present_fifo() {
 
   for (int i = 0; i < 100; i++) {
     int value = pop_fifo(&fifo);
-
     printf("Popped %d from fifo\n", value);
   }
 

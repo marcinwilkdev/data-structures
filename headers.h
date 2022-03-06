@@ -1,14 +1,13 @@
 typedef struct Fifo {
   int *pointer;
-  int *curr;
+  int *begin;
+  int *end;
   unsigned int size;
   unsigned int capacity;
 } Fifo;
 
 typedef struct Lifo {
   int *pointer;
-  int *begin;
-  int *end;
   unsigned int size;
   unsigned int capacity;
 } Lifo;
