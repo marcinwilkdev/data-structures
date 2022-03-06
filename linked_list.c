@@ -27,7 +27,6 @@ void push_linked_list(LinkedList *linked_list, int value) {
     linked_list->head = new_node_pointer;
   } else {
     LLNode *last_node = linked_list->tail;
-
     last_node->next = new_node_pointer;
   }
 
@@ -55,13 +54,20 @@ int get_linked_list(LinkedList *linked_list, int index) {
 }
 
 void merge_linked_list(LinkedList *first_ll, LinkedList *second_ll) {
-  LLNode *last_node = first_ll->head;
-
-  while (last_node->next != NULL) {
-    last_node = last_node->next;
+  if (first_ll->head == NULL) {
+    first_ll->head = second_ll->head;
+    first_ll->tail = second_ll->tail;
+    return;
   }
 
-  last_node->next = second_ll->head;
+  if (second_ll->head == NULL) {
+    return;
+  }
+
+  LLNode *first_ll_last_node = first_ll->tail;
+  first_ll_last_node->next = second_ll->head;
+
+  first_ll->tail = second_ll->tail;
 }
 
 void bechmark_linked_list(LinkedList *linked_list) {
